@@ -27,7 +27,7 @@ func main() {
 	}
 	mongoDb = mongoClient.Database(mongoDatabase)
 	r.GET("/healthz", healthz)
-	r.POST("/message", postMessage)
+	r.POST("/messages", postMessage)
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 
 }
