@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -22,12 +24,29 @@ type Message struct {
 }
 
 func postMessage(c *gin.Context) {
+	span, _ := opentracing.StartSpanFromContext(c, "POST /messages")
+	defer span.Finish()
+
+	hostname, _ := os.Hostname()
+
+	span.SetTag("hostname", hostname) // Tagに"hello-to"をセット
+
+	sp := opentracing.StartSpan(
+		"process message",
+		opentracing.ChildOf(span.Context()))
+	defer sp.Finish()
+
 	var m Message
 	if err := c.ShouldBindJSON(&m); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Sprintf("%v", err)})
 		return
 	}
 	processMessage(c, &m)
+
+	sp1 := opentracing.StartSpan(
+		"insert message",
+		opentracing.ChildOf(span.Context()))
+	defer sp1.Finish()
 
 	res, err := insertOneMessage(c, mongoDb, m)
 	if err != nil {
