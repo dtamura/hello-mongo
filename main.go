@@ -33,8 +33,7 @@ func main() {
 	defer closer.Close()
 	opentracing.SetGlobalTracer(tracer) // Jaeger tracer のグローバル変数を初期化
 
-	// Ginの初期化
-	r := gin.Default()
+	// MongoDBの初期化
 	mongoURL := os.Getenv("MONGO_URL")
 	mongoDatabase := os.Getenv("MONGO_DATABASE")
 	var err error
@@ -46,6 +45,9 @@ func main() {
 		return
 	}
 	mongoDb = mongoClient.Database(mongoDatabase)
+
+	// Ginの初期化
+	r := gin.Default()
 	r.GET("/healthz", healthz)
 	r.POST("/messages", postMessage)
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
