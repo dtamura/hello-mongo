@@ -34,7 +34,6 @@ func postMessage(c *gin.Context) {
 	sp := opentracing.StartSpan(
 		"process message",
 		opentracing.ChildOf(span.Context()))
-	defer sp.Finish()
 
 	var m Message
 	if err := c.ShouldBindJSON(&m); err != nil {
@@ -42,6 +41,7 @@ func postMessage(c *gin.Context) {
 		return
 	}
 	processMessage(c, &m)
+	sp.Finish()
 
 	sp1 := opentracing.StartSpan(
 		"insert message",
