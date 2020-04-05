@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -23,6 +24,7 @@ func healthz(c *gin.Context) {
 		opentracing.ChildOf(span.Context()))
 	defer sp.Finish()
 
+	// MongoDBに接続できるか
 	err := mongoClient.Connect(c)
 	if err != nil && err != topology.ErrTopologyConnected {
 		c.JSON(500, gin.H{
@@ -44,10 +46,25 @@ func healthz(c *gin.Context) {
 		})
 
 	}
+
+	// Pingできるか
+	data, err := ping(c.Request.Context(), pingURL)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"timestamp": time.Now(),
+			"status":    "NG",
+			"message":   "i'm not healthy",
+			"error":     err,
+			"hostname":  hostname,
+		})
+	}
+
+	// 成功時
 	c.JSON(200, gin.H{
-		"timestamp": time.Now(),
-		"status":    "OK",
-		"message":   "i'm healthy",
-		"hostname":  hostname,
+		"timestamp":    time.Now(),
+		"status":       "OK",
+		"message":      "i'm healthy",
+		"hostname":     hostname,
+		"ping_message": fmt.Sprintf("%v", data),
 	})
 }

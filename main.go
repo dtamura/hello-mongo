@@ -16,12 +16,16 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// MongoDB
 var mongoClient *mongo.Client
 var mongoDb *mongo.Database
 
 // Tracing
 var tracer opentracing.Tracer
 var logger log.Factory
+
+// Ping
+var pingURL string
 
 func main() {
 	// loggerの初期化
@@ -46,6 +50,9 @@ func main() {
 		return
 	}
 	mongoDb = mongoClient.Database(mongoDatabase)
+
+	// Ping
+	pingURL = os.Getenv("PING_URL")
 
 	// Ginの初期化
 	r := gin.Default()
