@@ -11,7 +11,7 @@ import (
 )
 
 func healthz(c *gin.Context) {
-	span, _ := opentracing.StartSpanFromContext(c, "healthz")
+	span, _ := opentracing.StartSpanFromContext(c.Request.Context(), "healthz")
 	defer span.Finish()
 
 	hostname, _ := os.Hostname()

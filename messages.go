@@ -24,7 +24,7 @@ type Message struct {
 }
 
 func postMessage(c *gin.Context) {
-	span, _ := opentracing.StartSpanFromContext(c, "POST /messages")
+	span, _ := opentracing.StartSpanFromContext(c.Request.Context(), "POST /messages")
 	defer span.Finish()
 
 	hostname, _ := os.Hostname()

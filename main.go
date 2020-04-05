@@ -8,6 +8,7 @@ import (
 	"github.com/dtamura/hello-mongo/lib/log"
 	"github.com/dtamura/hello-mongo/lib/tracing"
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing-contrib/go-gin/ginhttp"
 	opentracing "github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -48,6 +49,11 @@ func main() {
 
 	// Ginの初期化
 	r := gin.Default()
+
+	// Middleware
+	r.Use(ginhttp.Middleware(tracer)) // Tracing
+
+	// Router
 	r.GET("/healthz", healthz)
 	r.POST("/messages", postMessage)
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
