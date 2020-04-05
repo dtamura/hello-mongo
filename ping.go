@@ -8,6 +8,7 @@ import (
 	"path"
 
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pkg/errors"
 )
 
@@ -35,6 +36,16 @@ func ping(ctx context.Context, s string) (interface{}, error) {
 	// headers
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", userAgent)
+
+	// Inject
+	ext.SpanKindRPCClient.Set(span)
+	ext.HTTPUrl.Set(span, parsedURL.RequestURI())
+	ext.HTTPMethod.Set(span, "GET")
+	span.Tracer().Inject(
+		span.Context(),
+		opentracing.HTTPHeaders,
+		opentracing.HTTPHeadersCarrier(req.Header),
+	)
 
 	// Do Request
 	res, err := httpClient.Do(req)
