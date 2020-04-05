@@ -22,7 +22,6 @@ func healthz(c *gin.Context) {
 	sp := opentracing.StartSpan(
 		"ping mongo",
 		opentracing.ChildOf(span.Context()))
-	defer sp.Finish()
 
 	// MongoDBに接続できるか
 	err := mongoClient.Connect(c)
@@ -46,6 +45,7 @@ func healthz(c *gin.Context) {
 		})
 
 	}
+	sp.Finish()
 
 	// Pingできるか
 	data, err := ping(c.Request.Context(), pingURL)
