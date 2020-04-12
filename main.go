@@ -1,68 +1,30 @@
+// Copyright © 2019 Daiki Tamura
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
-import (
-	"context"
-	"os"
-	"time"
+import "github.com/dtamura/hello-mongo/cmd"
 
-	"github.com/dtamura/hello-mongo/lib/log"
-	"github.com/dtamura/hello-mongo/lib/tracing"
-	"github.com/gin-gonic/gin"
-	"github.com/opentracing-contrib/go-gin/ginhttp"
-	opentracing "github.com/opentracing/opentracing-go"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+var (
+	// Name 名前
+	Name string
+	// Version バージョン
+	Version string
+	// Revision リビジョン
+	Revision string
 )
 
-// MongoDB
-var mongoClient *mongo.Client
-var mongoDb *mongo.Database
-
-// Tracing
-var tracer opentracing.Tracer
-var logger log.Factory
-
-// Ping
-var pingURL string
-
 func main() {
-	// loggerの初期化
-	logger1, _ := zap.NewDevelopment(zap.AddStacktrace(zapcore.FatalLevel))
-	zapLogger := logger1.With(zap.String("service", "hello-mongo"))
-	logger = log.NewFactory(zapLogger)
-
-	// OpenTracingの初期化
-	tracer, closer := tracing.Init("hello-mongo", logger)
-	defer closer.Close()
-	opentracing.SetGlobalTracer(tracer) // Jaeger tracer のグローバル変数を初期化
-
-	// MongoDBの初期化
-	mongoURL := os.Getenv("MONGO_URL")
-	mongoDatabase := os.Getenv("MONGO_DATABASE")
-	var err error
-	mongoClient, err = mongo.NewClient(options.Client().ApplyURI(mongoURL))
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	err = mongoClient.Connect(ctx)
-	if err != nil {
-		return
-	}
-	mongoDb = mongoClient.Database(mongoDatabase)
-
-	// Ping
-	pingURL = os.Getenv("PING_URL")
-
-	// Ginの初期化
-	r := gin.Default()
-
-	// Middleware
-	r.Use(ginhttp.Middleware(tracer)) // Tracing
-
-	// Router
-	r.GET("/healthz", healthz)
-	r.POST("/messages", postMessage)
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
-
+	cmd.Execute()
 }
